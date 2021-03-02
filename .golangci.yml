@@ -1,0 +1,136 @@
+linters-settings:
+  govet:
+    check-shadowing: false
+  golint:
+    min-confidence: 0
+  gocyclo:
+    min-complexity: 100
+  dupl:
+    threshold: 150
+  exhaustive:
+    default-signifies-exhaustive: false
+  funlen:
+    lines: 100
+    statements: 90
+  goconst:
+    min-len: 4
+    min-occurrences: 4
+  errcheck:
+    ignore: fmt:.*,io/ioutil:^Read.*,github.com/jackc/pgx/pgtype:.*,github.com/jackc/pgx:^Rollback.*,SetDeadline
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+    disabled-checks:
+      - dupImport # https://github.com/go-critic/go-critic/issues/845
+      - ifElseChain
+      - octalLiteral
+      - whyNoLint
+      - wrapperFunc
+  gocyclo:
+    min-complexity: 30
+  goimports:
+    local-prefixes: github.com/golangci/golangci-lint
+  golint:
+    min-confidence: 0
+  gomnd:
+    settings:
+      mnd:
+        # don't include the "operation" and "assign"
+        checks: argument,case,condition,return
+  govet:
+    check-shadowing: true
+  lll:
+    line-length: 140
+  maligned:
+    suggest-new: true
+  misspell:
+    locale: US
+  nolintlint:
+    allow-leading-space: true # don't require machine-readable nolint directives (i.e. with no leading space)
+    allow-unused: false # report any unused nolint directives
+    require-explanation: false # don't require an explanation for nolint directives
+    require-specific: false # don't require nolint directives to be specific about which linter is being skipped
+
+linters:
+  # please, do not use `enable-all`: it's deprecated and will be removed soon.
+  # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
+  disable-all: true
+  enable:
+    - bodyclose
+    - deadcode
+    - depguard
+    - dogsled
+    - dupl
+    - errcheck
+    - funlen
+    - gochecknoinits
+    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    - golint
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - interfacer
+    - lll
+    - misspell
+    - nakedret
+    - nolintlint
+    - rowserrcheck
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - whitespace
+    - goerr113
+
+  # don't enable:
+  # - asciicheck
+  # - gochecknoglobals
+  # - scopelint
+  # - gocognit
+  # - gomnd add later
+  # - godot 
+  # - godox add later
+  # - nestif
+  # - noctx
+  # - prealloc
+  # - testpackage
+  # - wsl
+
+run:
+  skip-dirs:
+    - mock
+    - userproto
+
+issues:
+  # Excluding configuration per-path, per-linter, per-text and per-source
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - goconst
+        - errcheck
+        - dupl
+        - funlen
+        - gocyclo
+        - gosec
+        - goerr113
+
+# golangci.com configuration
+# https://github.com/golangci/golangci/wiki/Configuration
+service:
+  golangci-lint-version: 1.23.x # use the fixed version to not introduce new linters unexpectedly
+  prepare:
+    - echo "here I can run custom commands, but no preparation needed for this repo"

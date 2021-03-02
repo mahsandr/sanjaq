@@ -1,0 +1,11 @@
+{
+    "server": {
+        "port": "0.0.0.0:9090"
+    },
+    "database": {
+        "mysqlconn": "root:salam@/sanjaq"
+    },
+    "redisconn": {
+        "db": 1
+    }
+}
