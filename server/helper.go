@@ -1,11 +1,10 @@
 package server
 
 import (
-	"context"
+	"database/sql"
 	"encoding/json"
 	"io/ioutil"
 
-	"github.com/jackc/pgx/v4/pgxpool"
 	"go.uber.org/zap"
 )
 
@@ -48,14 +47,14 @@ func checkError(logger *zap.Logger, err error) {
 	}
 }
 
-func prepareTables(rowConn *pgxpool.Pool) (err error) {
-	_, err = rowConn.Exec(context.Background(), `BEGIN;
+func prepareTables(dbConn *sql.DB) (err error) {
+	_, err = dbConn.Exec(`BEGIN;
     CREATE TABLE IF NOT EXISTS posts 
     (
         id serial PRIMARY KEY,
 		title varchar(100) NOT NULL,
 		body varchar(500)  NOT NULL,
-		created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+		created_at timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 		COMMIT;`)
 	return

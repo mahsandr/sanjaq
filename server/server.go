@@ -11,9 +11,9 @@ import (
 )
 
 type Server struct {
-	logger *zap.Logger
-	post   *post.PostHandler
-	config Config
+	logger      *zap.Logger
+	postHandler *post.PostHandler
+	config      Config
 }
 
 func NewServer(logger *zap.Logger) *Server {
@@ -26,9 +26,9 @@ func NewServer(logger *zap.Logger) *Server {
 
 	post, err := post.NewPostHandler(postDB, logger)
 	return &Server{
-		config: config,
-		logger: logger,
-		post:   post,
+		config:      config,
+		logger:      logger,
+		postHandler: post,
 	}
 }
 func (s *Server) Run() {

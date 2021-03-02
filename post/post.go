@@ -69,7 +69,7 @@ func (p *PostHandler) NewPost(reqCtx *fasthttp.RequestCtx) {
 	}
 	response.Result = postID
 }
-func (p *PostHandler) Get(reqCtx *fasthttp.RequestCtx) {
+func (p *PostHandler) GetPosts(reqCtx *fasthttp.RequestCtx) {
 	response := Response{}
 	defer func() {
 		payload, err := json.Marshal(&response)
@@ -108,9 +108,9 @@ func (p *PostHandler) Get(reqCtx *fasthttp.RequestCtx) {
 	}
 	response.Result = posts
 }
-func Top(reqCtx *fasthttp.RequestCtx) {
+func (p *PostHandler) Top(reqCtx *fasthttp.RequestCtx) {
 
 }
-func Del(reqCtx *fasthttp.RequestCtx) {
+func (p *PostHandler) Del(reqCtx *fasthttp.RequestCtx) {
 
 }

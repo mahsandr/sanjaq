@@ -125,7 +125,7 @@ func TestNewPost(t *testing.T) {
 		})
 	}
 }
-func TestGet(t *testing.T) {
+func TestGetPosts(t *testing.T) {
 	var tests = map[string]struct {
 		initMock   func(mockDB *mockdb.MockConn)
 		statusCode int
@@ -227,7 +227,7 @@ func TestGet(t *testing.T) {
 			handler, err := NewPostHandler(mockDB, zap.New(observerlog))
 			So(err, ShouldBeNil)
 
-			handler.Get(reqCtx)
+			handler.GetPosts(reqCtx)
 			logs := out.TakeAll()
 
 			resp := Response{}
