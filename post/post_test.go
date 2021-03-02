@@ -99,7 +99,7 @@ func TestNewPost(t *testing.T) {
 			if test.body != "" {
 				reqCtx.PostArgs().Set("body", test.body)
 			}
-			handler, err := NewPostHandler(mockDB, zap.New(observerlog))
+			handler, err := NewHandler(mockDB, zap.New(observerlog))
 			So(err, ShouldBeNil)
 
 			handler.NewPost(reqCtx)
@@ -121,7 +121,6 @@ func TestNewPost(t *testing.T) {
 					So(log.ContextMap(), ShouldResemble, test.logContext[i])
 				}
 			}
-
 		})
 	}
 }
@@ -224,7 +223,7 @@ func TestGetPosts(t *testing.T) {
 				reqCtx.URI().QueryArgs().Set("offset", test.offset)
 			}
 
-			handler, err := NewPostHandler(mockDB, zap.New(observerlog))
+			handler, err := NewHandler(mockDB, zap.New(observerlog))
 			So(err, ShouldBeNil)
 
 			handler.GetPosts(reqCtx)
@@ -246,7 +245,6 @@ func TestGetPosts(t *testing.T) {
 					So(log.ContextMap(), ShouldResemble, test.logContext[i])
 				}
 			}
-
 		})
 	}
 }

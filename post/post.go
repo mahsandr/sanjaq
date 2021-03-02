@@ -15,18 +15,17 @@ type errorCode string
 var (
 	errorCodeEmptyTitle  errorCode = "EMPTY_TITLE"
 	errorCodeEmptyBody   errorCode = "EMPTY_BODY"
-	errorCodeEmptyPostID errorCode = "EMPTY_POST_ID"
 	errorCodeEmptyLimit  errorCode = "EMPTY_Limit"
 	errorCodeServerError errorCode = "SERVER_ERROR"
 )
 
-type PostHandler struct {
+type Handler struct {
 	logger *zap.Logger
 	dbConn db.Conn
 }
 
-func NewPostHandler(dbConn db.Conn, logger *zap.Logger) (*PostHandler, error) {
-	return &PostHandler{
+func NewHandler(dbConn db.Conn, logger *zap.Logger) (*Handler, error) {
+	return &Handler{
 		logger: logger,
 		dbConn: dbConn,
 	}, nil
@@ -39,12 +38,13 @@ type Response struct {
 }
 
 // NewPost is function that insert new post and returns the id
-func (p *PostHandler) NewPost(reqCtx *fasthttp.RequestCtx) {
+func (p *Handler) NewPost(reqCtx *fasthttp.RequestCtx) {
 	response := Response{}
 	defer func() {
 		payload, err := json.Marshal(&response)
 		p.checkError("marshal new post response", err)
-		reqCtx.Write(payload)
+		_, err = reqCtx.Write(payload)
+		p.checkError("write NewPost response", err)
 	}()
 	var title string
 	if title = string(reqCtx.PostArgs().Peek("title")); title == "" {
@@ -69,12 +69,13 @@ func (p *PostHandler) NewPost(reqCtx *fasthttp.RequestCtx) {
 	}
 	response.Result = postID
 }
-func (p *PostHandler) GetPosts(reqCtx *fasthttp.RequestCtx) {
+func (p *Handler) GetPosts(reqCtx *fasthttp.RequestCtx) {
 	response := Response{}
 	defer func() {
 		payload, err := json.Marshal(&response)
 		p.checkError("marshal new post response", err)
-		reqCtx.Write(payload)
+		_, err = reqCtx.Write(payload)
+		p.checkError("write GetPosts response", err)
 	}()
 	var (
 		postIDs []uint64
@@ -95,7 +96,6 @@ func (p *PostHandler) GetPosts(reqCtx *fasthttp.RequestCtx) {
 		if offsetStr = string(reqCtx.URI().QueryArgs().Peek("offset")); offsetStr != "" {
 			offset, _ = strconv.ParseUint(offsetStr, 10, 64)
 		}
-
 	}
 
 	posts, err := p.dbConn.Get(postIDs, uint16(limit), offset)
@@ -108,9 +108,9 @@ func (p *PostHandler) GetPosts(reqCtx *fasthttp.RequestCtx) {
 	}
 	response.Result = posts
 }
-func (p *PostHandler) Top(reqCtx *fasthttp.RequestCtx) {
+func (p *Handler) Top(reqCtx *fasthttp.RequestCtx) {
 
 }
-func (p *PostHandler) Del(reqCtx *fasthttp.RequestCtx) {
+func (p *Handler) Del(reqCtx *fasthttp.RequestCtx) {
 
 }

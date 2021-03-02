@@ -1,3 +1,4 @@
+//nolint: golint
 package db
 
 import (
@@ -136,7 +137,7 @@ func TestGet(t *testing.T) {
 		"postIds & limit are zero": {
 			limit:   0,
 			offset:  0,
-			errWant: invalidInputsErr,
+			errWant: errInvalidInputs,
 		},
 		"error": {
 			postIds: []uint64{1},
@@ -147,8 +148,9 @@ func TestGet(t *testing.T) {
 		Convey(testName, t, func() {
 			err = truncateTable(dbConn.DBConn(), "posts")
 			So(err, ShouldBeNil)
+			var postID uint64
 			for _, post := range test.insertPosts {
-				postID, err := dbConn.Insert(post.Title, post.Body)
+				postID, err = dbConn.Insert(post.Title, post.Body)
 				So(err, ShouldBeNil)
 				for j, p := range test.getPosts {
 					if p.Title == post.Title {
@@ -197,7 +199,7 @@ func TestDelete(t *testing.T) {
 			},
 		},
 		"invalid_input": {
-			errWant: invalidInputsErr,
+			errWant: errInvalidInputs,
 		},
 	}
 	for testName, test := range tests {
@@ -205,9 +207,13 @@ func TestDelete(t *testing.T) {
 			err = truncateTable(dbConn.DBConn(), "posts")
 			So(err, ShouldBeNil)
 
-			var postIDs []uint64
+			var (
+				postIDs []uint64
+				postID  uint64
+			)
+
 			if test.insertPost != nil {
-				postID, err := dbConn.Insert(test.insertPost.Title, test.insertPost.Body)
+				postID, err = dbConn.Insert(test.insertPost.Title, test.insertPost.Body)
 				So(err, ShouldBeNil)
 				postIDs = append(postIDs, postID)
 			}

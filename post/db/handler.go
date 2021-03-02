@@ -12,7 +12,7 @@ type Post struct {
 	CreatedAt int64
 }
 
-var invalidInputsErr = errors.New("INVALID_INPUT")
+var errInvalidInputs = errors.New("INVALID_INPUT")
 
 const insertQuery = `
 INSERT INTO posts(id,title,body,created_at)
@@ -39,16 +39,17 @@ SELECT id,title,body,UNIX_TIMESTAMP(created_at)
 		order by created_at desc 
 		 limit ? offset ?
 		`
+const fileterPostQuery = " WHERE id in (%s) "
 
 // Get is function that get posts by id
 func (c *conn) Get(postIDs []uint64, limit uint16, offset uint64) (posts []*Post, err error) {
 	if len(postIDs) == 0 && limit == 0 {
-		return nil, invalidInputsErr
+		return nil, errInvalidInputs
 	}
 	query := selectQuery
 	whereCondition := ""
 	if len(postIDs) > 0 {
-		whereCondition = fmt.Sprintf(" WHERE id in (%s) ", convertFormatUintAppend(postIDs))
+		whereCondition = fmt.Sprintf(fileterPostQuery, convertFormatUintAppend(postIDs))
 	}
 
 	params := []interface{}{}
@@ -82,7 +83,7 @@ const deleteQuery = "DELETE FROM posts WHERE id in (%s)"
 // Insert a new post
 func (c *conn) Delete(postIDs []uint64) (err error) {
 	if len(postIDs) == 0 {
-		return invalidInputsErr
+		return errInvalidInputs
 	}
 
 	_, err = c.DBConn().Exec(fmt.Sprintf(deleteQuery, convertFormatUintAppend(postIDs)))

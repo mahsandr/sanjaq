@@ -1,5 +1,6 @@
 package db
 
+//nolint: golint
 import (
 	"database/sql"
 	"time"

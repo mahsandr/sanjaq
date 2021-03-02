@@ -13,7 +13,7 @@ type Config struct {
 		Port string `json:"port"`
 	} `json:"server"`
 	DataBase struct {
-		MySqlConn string `json:"mysqlconn"`
+		MySQLConn string `json:"mysqlconn"`
 	} `json:"database"`
 	RedisConn struct {
 		Addr     string `json:"addr"`

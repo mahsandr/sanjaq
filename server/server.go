@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"sanjaq/logger"
 	"sanjaq/post"
 	postdb "sanjaq/post/db"
 
@@ -12,23 +13,26 @@ import (
 
 type Server struct {
 	logger      *zap.Logger
-	postHandler *post.PostHandler
+	postHandler *post.Handler
 	config      Config
 }
 
-func NewServer(logger *zap.Logger) *Server {
+func NewServer() *Server {
+	log := logger.InitLog()
+
 	config := ReadFromJSON("./config.json")
-	postDB, err := postdb.NewConn(config.DataBase.MySqlConn)
-	checkError(logger, err)
+	postDB, err := postdb.NewConn(config.DataBase.MySQLConn)
+	checkError(log, err)
 
 	err = prepareTables(postDB.DBConn())
-	checkError(logger, err)
+	checkError(log, err)
 
-	post, err := post.NewPostHandler(postDB, logger)
+	postHandler, err := post.NewHandler(postDB, log)
+	checkError(log, err)
 	return &Server{
 		config:      config,
-		logger:      logger,
-		postHandler: post,
+		logger:      log,
+		postHandler: postHandler,
 	}
 }
 func (s *Server) Run() {
