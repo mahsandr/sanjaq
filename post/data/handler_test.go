@@ -1,5 +1,5 @@
 //nolint: golint
-package db
+package data
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 func TestInsert(t *testing.T) {
-	dbConn, err := NewConn(getTestDBAddress())
+	dbConn, err := NewConn(getTestDBAddress(), "127.0.0.1:6379", "", 1)
 	if err != nil {
 		panic(err)
 	}
@@ -60,7 +60,7 @@ func TestInsert(t *testing.T) {
 	}
 }
 func TestGet(t *testing.T) {
-	dbConn, err := NewConn(getTestDBAddress())
+	dbConn, err := NewConn(getTestDBAddress(), "127.0.0.1:6379", "", 1)
 	if err != nil {
 		panic(err)
 	}
@@ -178,7 +178,7 @@ func TestGet(t *testing.T) {
 	}
 }
 func TestDelete(t *testing.T) {
-	dbConn, err := NewConn(getTestDBAddress())
+	dbConn, err := NewConn(getTestDBAddress(), "127.0.0.1:6379", "", 1)
 	if err != nil {
 		panic(err)
 	}

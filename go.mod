@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/fasthttp/router v1.3.8
+	github.com/go-redis/redis/v8 v8.6.0 // indirect
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/mock v1.5.0
 	github.com/goraz/cast v0.0.0-20161228064322-a1918f6ea079 // indirect

@@ -1,6 +1,7 @@
-package db
+package data
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 )
@@ -78,14 +79,17 @@ func (c *conn) Get(postIDs []uint64, limit uint16, offset uint64) (posts []*Post
 	return posts, nil
 }
 
-const deleteQuery = "DELETE FROM posts WHERE id in (%s)"
+const deleteQuery = "DELETE FROM posts WHERE id=%v"
 
 // Insert a new post
-func (c *conn) Delete(postIDs []uint64) (err error) {
-	if len(postIDs) == 0 {
-		return errInvalidInputs
+func (c *conn) Delete(postID uint64) error {
+	result, err := c.DBConn().Exec(fmt.Sprintf(deleteQuery, postID))
+	if err != nil {
+		return err
 	}
-
-	_, err = c.DBConn().Exec(fmt.Sprintf(deleteQuery, convertFormatUintAppend(postIDs)))
-	return err
+	if count, _ := result.RowsAffected(); count == 0 {
+		return sql.ErrNoRows
+	}
+	go c.DeleteCachedPost(postID)
+	return nil
 }

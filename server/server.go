@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sanjaq/logger"
 	"sanjaq/post"
-	postdb "sanjaq/post/db"
+	postdata "sanjaq/post/data"
 
 	"github.com/fasthttp/router"
 	"github.com/valyala/fasthttp"
@@ -21,13 +21,16 @@ func NewServer() *Server {
 	log := logger.InitLog()
 
 	config := ReadFromJSON("./config.json")
-	postDB, err := postdb.NewConn(config.DataBase.MySQLConn)
+	postData, err := postdata.NewConn(config.DataBase.MySQLConn,
+		config.RedisConn.Addr,
+		config.RedisConn.Password,
+		config.RedisConn.DB)
 	checkError(log, err)
 
-	err = prepareTables(postDB.DBConn())
+	err = prepareTables(postData.DBConn())
 	checkError(log, err)
 
-	postHandler, err := post.NewHandler(postDB, log)
+	postHandler, err := post.NewHandler(postData, log)
 	checkError(log, err)
 	return &Server{
 		config:      config,

@@ -3,7 +3,7 @@ package post
 import (
 	"encoding/json"
 	"errors"
-	"sanjaq/post/db"
+	"sanjaq/post/data"
 	mockdb "sanjaq/post/mockdb"
 	"testing"
 
@@ -142,7 +142,7 @@ func TestGetPosts(t *testing.T) {
 				postID := uint64(1)
 				mockDB.EXPECT().
 					Get([]uint64{postID}, uint16(0), uint64(0)).
-					Return([]*db.Post{
+					Return([]*data.Post{
 						{
 							ID:        1,
 							Title:     "test1",
@@ -170,7 +170,7 @@ func TestGetPosts(t *testing.T) {
 				var postIDs []uint64
 				mockDB.EXPECT().
 					Get(postIDs, limit, offset).
-					Return([]*db.Post{
+					Return([]*data.Post{
 						{
 							ID:        1,
 							Title:     "test1",

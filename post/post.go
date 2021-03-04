@@ -1,8 +1,9 @@
 package post
 
 import (
+	"database/sql"
 	"encoding/json"
-	"sanjaq/post/db"
+	"sanjaq/post/data"
 	"strconv"
 
 	"github.com/goraz/cast"
@@ -13,18 +14,20 @@ import (
 type errorCode string
 
 var (
-	errorCodeEmptyTitle  errorCode = "EMPTY_TITLE"
-	errorCodeEmptyBody   errorCode = "EMPTY_BODY"
-	errorCodeEmptyLimit  errorCode = "EMPTY_Limit"
-	errorCodeServerError errorCode = "SERVER_ERROR"
+	errorCodeEmptyTitle   errorCode = "EMPTY_TITLE"
+	errorCodeEmptyBody    errorCode = "EMPTY_BODY"
+	errorCodeEmptyPostID  errorCode = "EMPTY_POST_ID"
+	errorCodeEmptyLimit   errorCode = "EMPTY_Limit"
+	errorCodeServerError  errorCode = "SERVER_ERROR"
+	errorCodePostNotFound errorCode = "POST_NOT_FOUND"
 )
 
 type Handler struct {
 	logger *zap.Logger
-	dbConn db.Conn
+	dbConn data.Conn
 }
 
-func NewHandler(dbConn db.Conn, logger *zap.Logger) (*Handler, error) {
+func NewHandler(dbConn data.Conn, logger *zap.Logger) (*Handler, error) {
 	return &Handler{
 		logger: logger,
 		dbConn: dbConn,
@@ -38,13 +41,13 @@ type Response struct {
 }
 
 // NewPost is function that insert new post and returns the id
-func (p *Handler) NewPost(reqCtx *fasthttp.RequestCtx) {
+func (h *Handler) NewPost(reqCtx *fasthttp.RequestCtx) {
 	response := Response{}
 	defer func() {
 		payload, err := json.Marshal(&response)
-		p.checkError("marshal new post response", err)
+		h.checkError("marshal new post response", err)
 		_, err = reqCtx.Write(payload)
-		p.checkError("write NewPost response", err)
+		h.checkError("write NewPost response", err)
 	}()
 	var title string
 	if title = string(reqCtx.PostArgs().Peek("title")); title == "" {
@@ -59,9 +62,9 @@ func (p *Handler) NewPost(reqCtx *fasthttp.RequestCtx) {
 		response.ErrorCode = errorCodeEmptyBody
 		return
 	}
-	postID, err := p.dbConn.Insert(title, body)
+	postID, err := h.dbConn.Insert(title, body)
 	if err != nil {
-		p.logger.Error("failed to insert post",
+		h.logger.Error("failed to insert post",
 			zap.Error(err))
 		reqCtx.Response.Header.SetStatusCode(fasthttp.StatusInternalServerError)
 		response.ErrorCode = errorCodeServerError
@@ -69,13 +72,13 @@ func (p *Handler) NewPost(reqCtx *fasthttp.RequestCtx) {
 	}
 	response.Result = postID
 }
-func (p *Handler) GetPosts(reqCtx *fasthttp.RequestCtx) {
+func (h *Handler) GetPosts(reqCtx *fasthttp.RequestCtx) {
 	response := Response{}
 	defer func() {
 		payload, err := json.Marshal(&response)
-		p.checkError("marshal new post response", err)
+		h.checkError("marshal new post response", err)
 		_, err = reqCtx.Write(payload)
-		p.checkError("write GetPosts response", err)
+		h.checkError("write GetPosts response", err)
 	}()
 	var (
 		postIDs []uint64
@@ -98,19 +101,58 @@ func (p *Handler) GetPosts(reqCtx *fasthttp.RequestCtx) {
 		}
 	}
 
-	posts, err := p.dbConn.Get(postIDs, uint16(limit), offset)
+	posts, err := h.dbConn.Get(postIDs, uint16(limit), offset)
 	if err != nil {
-		p.logger.Error("failed to get post",
+		h.logger.Error("failed to get post",
 			zap.Error(err))
 		response.ErrorCode = errorCodeServerError
 		reqCtx.Response.Header.SetStatusCode(fasthttp.StatusInternalServerError)
 		return
 	}
-	response.Result = posts
+	if len(posts) == 0 {
+		response.ErrorCode = errorCodePostNotFound
+		reqCtx.Response.Header.SetStatusCode(fasthttp.StatusNotFound)
+	} else {
+		go h.countViews(postIDs)
+		response.Result = posts
+	}
 }
-func (p *Handler) Top(reqCtx *fasthttp.RequestCtx) {
+func (h *Handler) Del(reqCtx *fasthttp.RequestCtx) {
+	response := Response{}
+	defer func() {
+		payload, err := json.Marshal(&response)
+		h.checkError("marshal new post response", err)
+		_, err = reqCtx.Write(payload)
+		h.checkError("write GetPosts response", err)
+	}()
+	if reqCtx.UserValue("id") == nil {
+		reqCtx.Response.Header.SetStatusCode(fasthttp.StatusBadRequest)
+		response.ErrorCode = errorCodeEmptyPostID
+		return
+	}
+	postID := cast.MustUint(reqCtx.UserValue("id"))
+	if err := h.dbConn.Delete(postID); err != nil {
+		if err == sql.ErrNoRows {
+			response.ErrorCode = errorCodePostNotFound
+			reqCtx.Response.Header.SetStatusCode(fasthttp.StatusNotFound)
+		} else {
+			h.logger.Error("failed to delete",
+				zap.Error(err))
+			response.ErrorCode = errorCodeServerError
+			reqCtx.Response.Header.SetStatusCode(fasthttp.StatusInternalServerError)
+		}
+	}
+}
+
+func (h *Handler) Top(reqCtx *fasthttp.RequestCtx) {
 
 }
-func (p *Handler) Del(reqCtx *fasthttp.RequestCtx) {
+func (h *Handler) countViews(postIDs []uint64) {
+	// increase redis is atomic
 
+	err := h.dbConn.CountPostVisits(postIDs)
+	if err != nil {
+		h.logger.Error("failed to count visitor",
+			zap.Error(err))
+	}
 }
